@@ -4,17 +4,15 @@ import {TetrisPiece} from './TetrisPiece'
 import PriorityQueue from 'js-priority-queue'
 
 const TetrisComponent = () => {
-   // const [canvas, setCanvas] = useState();
-    //const [context, setContext] = useState();
-    var queue = new PriorityQueue((a, b)=> {return b.y-a.y});
-    //queue.queue({x:0, y:1})
+
+    var pq = new PriorityQueue((a, b)=> {return b.y-a.y});
     const [pieces, setPieces] = useState([]);
     const resetPiece = () =>{
         player.pos.y = -1;
         player.pos.x = getRandomInt(6)*2
     }
     const onDelete = () =>{
-        //console.log(queue.length)
+        console.log(pq.length)
         console.log(pieces)
 
        /*  for(let i = 0; i<arena.length; i++){
@@ -110,9 +108,8 @@ const TetrisComponent = () => {
         if(dropCounter > dropInterval){
             {pieces.map( piece => {
                 if(piece.pos.y+2 >=arena.length || arena[piece.pos.y+2][piece.pos.x] !== 0){
-                    queue.queue({x:piece.pos.x, y:piece.pos.y})
-                    let index = pieces.indexOf(piece)
-                    setPieces(pieces.splice(index, 1))
+                    //queue.queue({x:piece.pos.x, y:piece.pos.y})
+                    piece.pos.bottom = true
                     return
                 }
                 arena[piece.pos.y][piece.pos.x] =0
@@ -137,11 +134,11 @@ const TetrisComponent = () => {
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
         drawMatrix(arena, {x:0, y:0})
-        //drawMatrix(matrix, player.pos)
         requestAnimationFrame(update);
     }
 
  useEffect(()=>{
+
     update()
 
 }, [pieces]) 
@@ -153,11 +150,15 @@ const TetrisComponent = () => {
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
 
-        setInterval(function(){ 
-        const piece = new TetrisPiece({x:getRandomInt(6)*2, y:0}, 1)
-      
-
-        setPieces([piece, ...pieces])
+        setInterval(() => {
+        const piece = new TetrisPiece({x:getRandomInt(6)*2, y:0, bottom: false}, 1)
+        setPieces((pieces) => [...pieces, piece].filter(function(p){ 
+            if(!p.pos.bottom){
+                pq.queue(p.pos)
+            }
+            return !p.pos.bottom}))
+        //setPieces(pieces.filter(function(p){ return p.pos.y !== 1000}))
+       // setPieces([piece, ...pieces])
         }, 3000);
 
         
