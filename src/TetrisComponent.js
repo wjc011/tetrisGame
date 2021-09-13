@@ -4,9 +4,13 @@ import {TetrisPiece} from './TetrisPiece'
 import PriorityQueue from 'js-priority-queue'
 
 const TetrisComponent = () => {
+    const [pq, setPq] = useState(new PriorityQueue((a, b)=> {return b.y-a.y}))
 
-    var pq = new PriorityQueue((a, b)=> {return b.y-a.y});
-    const [pieces, setPieces] = useState([]);
+
+    const [pieces, setPieces] = useState([new TetrisPiece({x:getRandomInt(6)*2, y:0, bottom: false}, 1)]);
+    const [itemToPush, setItemToPush] = useState()
+    const [updatePiece, setUpdatePiece] = useState(true)
+
     const resetPiece = () =>{
         player.pos.y = -1;
         player.pos.x = getRandomInt(6)*2
@@ -97,19 +101,21 @@ const TetrisComponent = () => {
     let dropInterval = 500;
     let lastTime = 0
     const update = (time=0)=>{
-        
+        console.log(pieces.length)
+
         let deltaTime = time - lastTime
         lastTime = time
         dropCounter += deltaTime
-        if(pieces.length == 0){
+        /*  if(pieces.length == 0){
             return
 
-        }
+        }  */
         if(dropCounter > dropInterval){
             {pieces.map( piece => {
                 if(piece.pos.y+2 >=arena.length || arena[piece.pos.y+2][piece.pos.x] !== 0){
                     //queue.queue({x:piece.pos.x, y:piece.pos.y})
                     piece.pos.bottom = true
+                    setItemToPush(piece.pos)
                     return
                 }
                 arena[piece.pos.y][piece.pos.x] =0
@@ -137,11 +143,19 @@ const TetrisComponent = () => {
         requestAnimationFrame(update);
     }
 
+    //UPDATE ONLY ONCE
  useEffect(()=>{
-
-    update()
+console.log(pieces)
+    if(updatePiece){
+        setUpdatePiece(false)
+        update()
+    }
 
 }, [pieces]) 
+useEffect(()=>{
+pq.queue(itemToPush)
+//console.log(itemToPush)
+}, [itemToPush]) 
 
     useEffect(() => {
         const canvas = document.getElementById('tetris')
@@ -149,18 +163,15 @@ const TetrisComponent = () => {
         context.scale(20, 20)
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
-
+        //let piece = new TetrisPiece({x:getRandomInt(6)*2, y:0, bottom: false}, 1)
         setInterval(() => {
         const piece = new TetrisPiece({x:getRandomInt(6)*2, y:0, bottom: false}, 1)
-        setPieces((pieces) => [...pieces, piece].filter(function(p){ 
-            if(!p.pos.bottom){
-                pq.queue(p.pos)
-            }
+        setPieces((pieces) => [piece, ...pieces].filter(function(p){ 
+
             return !p.pos.bottom}))
         //setPieces(pieces.filter(function(p){ return p.pos.y !== 1000}))
        // setPieces([piece, ...pieces])
         }, 3000);
-
         
     }, [])
 
