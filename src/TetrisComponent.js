@@ -1,6 +1,6 @@
 import React from 'react'
 import {useEffect, useState} from 'react'
-import { TetrisPiece } from './TetrisPiece'
+import TetrisPiece from './TetrisPiece'
 
 const TetrisComponent = () => {
    // const [canvas, setCanvas] = useState();
@@ -96,7 +96,6 @@ const TetrisComponent = () => {
         
         let deltaTime = time - lastTime
         lastTime = time
-        console.log(deltaTime)
         dropCounter += deltaTime
         if(dropCounter > dropInterval){
             player.pos.y++;
@@ -114,8 +113,7 @@ const TetrisComponent = () => {
         context.fillRect(0, 0, canvas.height, canvas.width)
         drawMatrix(arena, {x:0, y:0})
         drawMatrix(matrix, player.pos)
-        //requestAnimationFrame(update);
-        update
+        requestAnimationFrame(update);
     }
 
     useEffect(() => {
@@ -124,9 +122,10 @@ const TetrisComponent = () => {
         context.scale(20, 20)
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
-
-        const piece = new TetrisPiece(1, getRandomInt(6)*2)
-        update(piece);
+        setInterval(function(){ 
+            TetrisPiece({arena})
+        }, 1000);
+       // update();
 
         
     }, [])
