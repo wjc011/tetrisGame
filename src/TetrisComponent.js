@@ -1,17 +1,23 @@
 import React from 'react'
 import {useEffect, useState} from 'react'
-import TetrisPiece from './TetrisPiece'
+import {TetrisPiece} from './TetrisPiece'
+import PriorityQueue from 'js-priority-queue'
 
 const TetrisComponent = () => {
    // const [canvas, setCanvas] = useState();
     //const [context, setContext] = useState();
-    
+    var queue = new PriorityQueue((a, b)=> {return b.y-a.y});
+    //queue.queue({x:0, y:1})
+    const [pieces, setPieces] = useState([]);
     const resetPiece = () =>{
         player.pos.y = -1;
         player.pos.x = getRandomInt(6)*2
     }
     const onDelete = () =>{
-        for(let i = 0; i<arena.length; i++){
+        //console.log(queue.length)
+        console.log(pieces)
+
+       /*  for(let i = 0; i<arena.length; i++){
             for(let j = 0; j<arena.length; j++){
                 if(arena[i][j] == 1){
                     arena[i][j] =0;
@@ -23,7 +29,7 @@ const TetrisComponent = () => {
             }
         }
         dropCounter = 0
-        resetPiece()
+        resetPiece() */
         
 
     }
@@ -42,7 +48,7 @@ const TetrisComponent = () => {
         return matrix
 
     }
-    const arena = createMatrix(12, 20)
+    const [arena, setArena] = useState(createMatrix(12, 20))
 
     const collide = (arena, player) =>{
         const [m, o] = [player.matrix, player.pos]
@@ -74,15 +80,15 @@ const TetrisComponent = () => {
 
     }
     const drawMatrix = (matrix, offset) =>{
-  
         const canvas = document.getElementById('tetris')
         const context = canvas.getContext('2d')
-        
-        /* context.fillStyle = '#000'
-        context.fillRect(0, 0, canvas.height, canvas.width) */
+        context.fillStyle = '#000'
+        context.fillRect(0, 0, canvas.height, canvas.width) 
+
         matrix.forEach((row, y)=>{
             row.forEach((value, x)=>{
-                if(value !== 0){
+                if(matrix[y][x] !== 0){
+
                     context.fillStyle = 'red';
                     context.fillRect(x+offset.x, y+offset.y, 1, 1);
                 }
@@ -97,13 +103,32 @@ const TetrisComponent = () => {
         let deltaTime = time - lastTime
         lastTime = time
         dropCounter += deltaTime
+        if(pieces.length == 0){
+            return
+
+        }
         if(dropCounter > dropInterval){
-            player.pos.y++;
-            if(collide(arena, player)){
-                player.pos.y--;
-                merge(arena, player)
-                return
-            }
+            {pieces.map( piece => {
+                if(piece.pos.y+2 >=arena.length || arena[piece.pos.y+2][piece.pos.x] !== 0){
+                    queue.queue({x:piece.pos.x, y:piece.pos.y})
+                    let index = pieces.indexOf(piece)
+                    setPieces(pieces.splice(index, 1))
+                    return
+                }
+                arena[piece.pos.y][piece.pos.x] =0
+                arena[piece.pos.y][piece.pos.x+1] =0
+
+                piece.pos.y++;
+
+                piece.matrix.forEach((row, y)=>{
+                    row.forEach((value, x)=>{
+                        arena[y+piece.pos.y][x+piece.pos.x] = piece.matrix[y][x]
+                    })
+                })
+
+            })
+            
+        }
             dropCounter = 0;
         }
         const canvas = document.getElementById('tetris')
@@ -112,9 +137,14 @@ const TetrisComponent = () => {
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
         drawMatrix(arena, {x:0, y:0})
-        drawMatrix(matrix, player.pos)
+        //drawMatrix(matrix, player.pos)
         requestAnimationFrame(update);
     }
+
+ useEffect(()=>{
+    update()
+
+}, [pieces]) 
 
     useEffect(() => {
         const canvas = document.getElementById('tetris')
@@ -122,10 +152,13 @@ const TetrisComponent = () => {
         context.scale(20, 20)
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
+
         setInterval(function(){ 
-            TetrisPiece({arena})
-        }, 1000);
-       // update();
+        const piece = new TetrisPiece({x:getRandomInt(6)*2, y:0}, 1)
+      
+
+        setPieces([piece, ...pieces])
+        }, 3000);
 
         
     }, [])
