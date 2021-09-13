@@ -13,6 +13,40 @@ const TetrisComponent = () => {
         [1, 1],
     ]
 
+    const createMatrix = (w, h) =>{
+        const matrix = []
+        for(let i =0; i<h; i++){
+            matrix.push(new Array(w).fill(0))
+        }
+        return matrix
+
+    }
+    const arena = createMatrix(12, 20)
+
+    const collide = (arena, player) =>{
+        const [m, o] = [player.matrix, player.pos]
+        for (let y = 0; y<m.length; ++y){
+            for(let x =0; x<m[y].length; ++x){
+                if(m[y][x] !== 0 &&
+                    (arena[y+o.y]&& arena[y+o.y][x+o.x]) !== 0){
+                        return true;
+                    }
+            }
+        }
+        return false;
+
+    }
+    const merge = (arena, player) =>{
+        player.matrix.forEach((row, y)=>{
+            row.forEach((value, x)=>{
+                if(value !== 0){
+                    arena[y+player.pos.y][x+player.pos.x] = value;
+                }
+            })
+        })
+
+    }
+
     let player = {
         pos : {x:0, y:0},
         matrix: matrix,
@@ -44,6 +78,12 @@ const TetrisComponent = () => {
         dropCounter += deltaTime
         if(dropCounter > dropInterval){
             player.pos.y++;
+            if(collide(arena, player)){
+                player.pos.y--;
+                drawMatrix()
+                merge(arena, player)
+                player.pos.y = 0
+            }
             dropCounter = 0;
         }
         drawMatrix()
@@ -57,6 +97,8 @@ const TetrisComponent = () => {
         context.scale(20, 20)
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
+        console.log(arena); console.table(arena)
+
         update();
 
         
