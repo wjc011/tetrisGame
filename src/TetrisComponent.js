@@ -1,11 +1,32 @@
 import React from 'react'
 import {useEffect, useState} from 'react'
+import { TetrisPiece } from './TetrisPiece'
 
 const TetrisComponent = () => {
    // const [canvas, setCanvas] = useState();
     //const [context, setContext] = useState();
     
+    const resetPiece = () =>{
+        player.pos.y = -1;
+        player.pos.x = getRandomInt(6)*2
+    }
+    const onDelete = () =>{
+        for(let i = 0; i<arena.length; i++){
+            for(let j = 0; j<arena.length; j++){
+                if(arena[i][j] == 1){
+                    arena[i][j] =0;
+                    arena[i+1][j] =0;
+                    arena[i][j+1] =0;
+                    arena[i+1][j+1] =0;
+                    return;
+                }
+            }
+        }
+        dropCounter = 0
+        resetPiece()
+        
 
+    }
    
     const matrix = [
         [0, 0],
@@ -48,47 +69,53 @@ const TetrisComponent = () => {
     }
 
     let player = {
-        pos : {x:0, y:0},
+        pos : {x:0, y:-1},
         matrix: matrix,
 
     }
-    const drawMatrix = () =>{
-
+    const drawMatrix = (matrix, offset) =>{
+  
         const canvas = document.getElementById('tetris')
         const context = canvas.getContext('2d')
-        context.fillStyle = '#000'
-        context.fillRect(0, 0, canvas.height, canvas.width)
-        player.matrix.forEach((row, y)=>{
+        
+        /* context.fillStyle = '#000'
+        context.fillRect(0, 0, canvas.height, canvas.width) */
+        matrix.forEach((row, y)=>{
             row.forEach((value, x)=>{
                 if(value !== 0){
                     context.fillStyle = 'red';
-                    context.fillRect(x+player.pos.x, y+player.pos.y, 1, 1);
+                    context.fillRect(x+offset.x, y+offset.y, 1, 1);
                 }
             })
         })
     }
     let dropCounter = 0;
-    let dropInterval = 1000;
+    let dropInterval = 500;
     let lastTime = 0
-    const update = (time = 0)=>{
+    const update = (time=0)=>{
         
         let deltaTime = time - lastTime
-
         lastTime = time
+        console.log(deltaTime)
         dropCounter += deltaTime
         if(dropCounter > dropInterval){
             player.pos.y++;
             if(collide(arena, player)){
                 player.pos.y--;
-                drawMatrix()
                 merge(arena, player)
-                player.pos.y = 0
+                return
             }
             dropCounter = 0;
         }
-        drawMatrix()
-        requestAnimationFrame(update);
-
+        const canvas = document.getElementById('tetris')
+        const context = canvas.getContext('2d')
+        
+        context.fillStyle = '#000'
+        context.fillRect(0, 0, canvas.height, canvas.width)
+        drawMatrix(arena, {x:0, y:0})
+        drawMatrix(matrix, player.pos)
+        //requestAnimationFrame(update);
+        update
     }
 
     useEffect(() => {
@@ -97,16 +124,21 @@ const TetrisComponent = () => {
         context.scale(20, 20)
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
-        console.log(arena); console.table(arena)
 
-        update();
+        const piece = new TetrisPiece(1, getRandomInt(6)*2)
+        update(piece);
 
         
     }, [])
 
+    function getRandomInt(max) {
+        return Math.floor(Math.random() * max);
+      }
+
     return (
         <div>
             <canvas id = "tetris" width = {240} height = {400}></canvas>
+            <button onClick = {onDelete}> delete</button>
         </div>
     )
 }
