@@ -2,7 +2,7 @@ import React from 'react'
 import {useEffect, useState} from 'react'
 import {TetrisPiece} from './TetrisPiece'
 import PriorityQueue from 'js-priority-queue'
-
+import { render } from '@testing-library/react'
 const TetrisComponent = () => {
     const [pq, setPq] = useState(new PriorityQueue((a, b)=> {return b.y-a.y}))
 
@@ -11,9 +11,44 @@ const TetrisComponent = () => {
     const [itemToPush, setItemToPush] = useState()
     const [updatePiece, setUpdatePiece] = useState(true)
 
+    const updateArena = ()=>{
+        for(let i =arena.length-2; i>=0; i--){
+            for(let j = arena[i].length-1; j>=0; j--){
+                //console.log(i+1, arena.length)
+                
+                if(arena[i][j] === 1 && arena[i+1][j] === 0){
+                    arena[i+1][j] = arena[i][j];
+                    arena[i][j] = 0;
+                }
+            }
+        }
+    
+    
+    
+    }
+
+    const resetPiece = () =>{
+        player.pos.y = -1;
+        player.pos.x = getRandomInt(6)*2
+    }
     const onDelete = () =>{
         console.log(pq.length)
-        console.log(pieces)      
+        console.log(pieces)
+
+       /*  for(let i = 0; i<arena.length; i++){
+            for(let j = 0; j<arena.length; j++){
+                if(arena[i][j] == 1){
+                    arena[i][j] =0;
+                    arena[i+1][j] =0;
+                    arena[i][j+1] =0;
+                    arena[i+1][j+1] =0;
+                    return;
+                }
+            }
+        }
+        dropCounter = 0
+        resetPiece() */
+        
 
     }
    
@@ -78,11 +113,23 @@ const TetrisComponent = () => {
             })
         })
     }
+    let dropCounter = 0;
+    let dropInterval = 500;
+    let lastTime = 0
+    const update = (time=0)=>{
+        //console.log(pieces.length)
 
- const update = () => {
-     console.log(pieces)
+        let deltaTime = time - lastTime
+        lastTime = time
+        dropCounter += deltaTime
+        /*  if(pieces.length == 0){
+            return
+
+        }  */
+        if(dropCounter > dropInterval){
             {pieces.map( piece => {
                 if(piece.pos.y+2 >=arena.length || arena[piece.pos.y+2][piece.pos.x] !== 0){
+                    //queue.queue({x:piece.pos.x, y:piece.pos.y})
                     piece.pos.bottom = true
                     setItemToPush(piece.pos)
                     return
@@ -99,6 +146,9 @@ const TetrisComponent = () => {
                 })
 
             })
+            
+        }
+            dropCounter = 0;
         }
         const canvas = document.getElementById('tetris')
         const context = canvas.getContext('2d')
@@ -106,23 +156,32 @@ const TetrisComponent = () => {
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
         drawMatrix(arena, {x:0, y:0})
+        requestAnimationFrame(update);
     }
-    
- 
 
+
+    const renderArena = () =>{
+
+        setInterval(()=>{
+            updateArena()
+            drawMatrix(arena, {x:0, y:0})
+
+
+        }, 500)
+
+
+    }
     //UPDATE ONLY ONCE
  useEffect(()=>{
-//     update()
- /* console.log(pieces)
-    if(updatePiece){
-        setUpdatePiece(false)
-        update() 
-    } */
-    setInterval(() => {
-update()
-    }, 500)
+/* 
+setInterval(() =>{
+ pieces.map((piece) =>{
+piece.updateArena(arena)
+drawMatrix(arena, {x:0, y:0})
 
-console.log(pieces)
+ })
+}, 1000) */
+
 }, [pieces]) 
 useEffect(()=>{
 pq.queue(itemToPush)
@@ -137,15 +196,19 @@ pq.queue(itemToPush)
         context.fillRect(0, 0, canvas.height, canvas.width)
         //let piece = new TetrisPiece({x:getRandomInt(6)*2, y:0, bottom: false}, 1)
         setInterval(() => {
-        const piece = new TetrisPiece({x:getRandomInt(6)*2, y:0, bottom: false}, 1)
+      /*   const piece = new TetrisPiece({x:getRandomInt(6)*2, y:0, bottom: false}, 1)
         setPieces((pieces) => [piece, ...pieces].filter(function(p){ 
 
             return !p.pos.bottom}))
-        //setPieces(pieces.filter(function(p){ return p.pos.y !== 1000}))
-       // setPieces([piece, ...pieces])
-      
+ */
+            arena[0][getRandomInt(12)] = 1
+            drawMatrix(arena, {x:0, y:0})
+           // setTimeout(()=>{    
+    
+            renderArena()
+        //}, 500)
         }, 3000);
-        
+
     }, [])
 
     function getRandomInt(max) {
