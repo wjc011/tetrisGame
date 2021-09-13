@@ -11,28 +11,9 @@ const TetrisComponent = () => {
     const [itemToPush, setItemToPush] = useState()
     const [updatePiece, setUpdatePiece] = useState(true)
 
-    const resetPiece = () =>{
-        player.pos.y = -1;
-        player.pos.x = getRandomInt(6)*2
-    }
     const onDelete = () =>{
         console.log(pq.length)
-        console.log(pieces)
-
-       /*  for(let i = 0; i<arena.length; i++){
-            for(let j = 0; j<arena.length; j++){
-                if(arena[i][j] == 1){
-                    arena[i][j] =0;
-                    arena[i+1][j] =0;
-                    arena[i][j+1] =0;
-                    arena[i+1][j+1] =0;
-                    return;
-                }
-            }
-        }
-        dropCounter = 0
-        resetPiece() */
-        
+        console.log(pieces)      
 
     }
    
@@ -97,23 +78,11 @@ const TetrisComponent = () => {
             })
         })
     }
-    let dropCounter = 0;
-    let dropInterval = 500;
-    let lastTime = 0
-    const update = (time=0)=>{
-        console.log(pieces.length)
 
-        let deltaTime = time - lastTime
-        lastTime = time
-        dropCounter += deltaTime
-        /*  if(pieces.length == 0){
-            return
-
-        }  */
-        if(dropCounter > dropInterval){
+ const update = () => {
+     console.log(pieces)
             {pieces.map( piece => {
                 if(piece.pos.y+2 >=arena.length || arena[piece.pos.y+2][piece.pos.x] !== 0){
-                    //queue.queue({x:piece.pos.x, y:piece.pos.y})
                     piece.pos.bottom = true
                     setItemToPush(piece.pos)
                     return
@@ -130,9 +99,6 @@ const TetrisComponent = () => {
                 })
 
             })
-            
-        }
-            dropCounter = 0;
         }
         const canvas = document.getElementById('tetris')
         const context = canvas.getContext('2d')
@@ -140,17 +106,23 @@ const TetrisComponent = () => {
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
         drawMatrix(arena, {x:0, y:0})
-        requestAnimationFrame(update);
     }
+    
+ 
 
     //UPDATE ONLY ONCE
  useEffect(()=>{
-console.log(pieces)
+//     update()
+ /* console.log(pieces)
     if(updatePiece){
         setUpdatePiece(false)
-        update()
-    }
+        update() 
+    } */
+    setInterval(() => {
+update()
+    }, 500)
 
+console.log(pieces)
 }, [pieces]) 
 useEffect(()=>{
 pq.queue(itemToPush)
@@ -171,6 +143,7 @@ pq.queue(itemToPush)
             return !p.pos.bottom}))
         //setPieces(pieces.filter(function(p){ return p.pos.y !== 1000}))
        // setPieces([piece, ...pieces])
+      
         }, 3000);
         
     }, [])
