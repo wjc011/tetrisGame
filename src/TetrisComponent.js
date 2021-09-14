@@ -10,43 +10,58 @@ const TetrisComponent = () => {
     const [pieces, setPieces] = useState([new TetrisPiece({x:getRandomInt(6)*2, y:0, bottom: false}, 1)]);
     const [itemToPush, setItemToPush] = useState()
     const [updatePiece, setUpdatePiece] = useState(true)
-
+    const [lowValue, setLowValue] = useState(20);
+    const [highCol, setHighCol] = useState(0);
     const updateArena = (mod)=>{
-        for(let i =arena.length-2; mod ==0 ? i>0 : i>=0; i--){
+        for(let i =arena.length-1; mod ==0 ? i>0 : i>=0; i--){
             for(let j = arena[i].length-1; j>=0; j--){                
-                if(arena[i][j] === 1 && arena[i+1][j] === 0){
+                if(arena[i][j] === 1){
+                    if(i< arena.length-1 && arena[i+1][j] === 0){
                     arena[i+1][j] = arena[i][j];
                     arena[i][j] = 0;
+                    }
+                    else{
+                        columns[j] = i;
+                        if(i<lowValue){
+                            setLowValue(i)
+                            setHighCol(j);
+                        }
+                    }
                 }
             }
         }
-    
-    
-    
     }
+
+    
 
     const resetPiece = () =>{
         player.pos.y = -1;
         player.pos.x = getRandomInt(6)*2
     }
     const onDelete = () =>{
-        console.log(pq.length)
-        console.log(pieces)
-
-       /*  for(let i = 0; i<arena.length; i++){
-            for(let j = 0; j<arena.length; j++){
-                if(arena[i][j] == 1){
-                    arena[i][j] =0;
-                    arena[i+1][j] =0;
-                    arena[i][j+1] =0;
-                    arena[i+1][j+1] =0;
-                    return;
-                }
-            }
+        /*let max = 0;
+        for(let i =0; i<arena[0].length; i++){
+            max = Math.max(max, getHeight(i));
         }
-        dropCounter = 0
-        resetPiece() */
-        
+*/
+console.log(lowValue, arena.length)
+
+if(lowValue < arena.length){
+
+    arena[lowValue][highCol] = 0;
+    columns[highCol]++;
+    let min = arena.length
+    for(let i =0; i<columns.length; i++){
+        if(columns[i] <min){
+            setHighCol(i);
+            setLowValue(min);
+        }
+    }
+    console.log(columns)
+
+    drawMatrix(arena, {x:0, y:0})
+
+}
 
     }
    
@@ -64,7 +79,15 @@ const TetrisComponent = () => {
         return matrix
 
     }
+    const createColumns = (w, h) =>{
+        const cols = []
+        for(let i =0; i<w; i++){
+            cols.push(h)
+        }
+        return cols
+    }
     const [arena, setArena] = useState(createMatrix(12, 20))
+    const [columns, setColumns] = useState(createColumns(arena[0].length, arena.length))
 
     const collide = (arena, player) =>{
         const [m, o] = [player.matrix, player.pos]
