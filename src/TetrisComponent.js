@@ -7,7 +7,7 @@ const TetrisComponent = () => {
     const [pq, setPq] = useState(new PriorityQueue((a, b)=> {return b.y-a.y}))
 
 
-    const [pieces, setPieces] = useState([new TetrisPiece({x:getRandomInt(6)*2, y:0, bottom: false}, 1)]);
+    const [pieces, setPieces] = useState([new TetrisPiece({x:getRandomInt(6), y:0, bottom: false}, 1)]);
     const [itemToPush, setItemToPush] = useState()
     const [updatePiece, setUpdatePiece] = useState(true)
     const [lowValue, setLowValue] = useState(20);
@@ -36,7 +36,7 @@ const TetrisComponent = () => {
 
     const resetPiece = () =>{
         player.pos.y = -1;
-        player.pos.x = getRandomInt(6)*2
+        player.pos.x = arena.length
     }
     const onDelete = () =>{
         /*let max = 0;
@@ -51,16 +51,32 @@ if(lowValue < arena.length){
     arena[lowValue][highCol] = 0;
     columns[highCol]++;
     let min = arena.length
+    let lowCol = 0;
     for(let i =0; i<columns.length; i++){
         if(columns[i] <min){
-            setHighCol(i);
-            setLowValue(min);
+            min = arena.length
+            lowCol =i
         }
     }
+    setHighCol(lowCol);
+    setLowValue(min);
     console.log(columns)
 
     drawMatrix(arena, {x:0, y:0})
 
+}
+else{
+
+    for(let i = arena.length-1; i>=0; i--){
+        for(let j = arena[0].length-1; j>=0; j--){
+            if(arena[i][j] !== 0){
+                arena[i][j] = 0;
+                drawMatrix(arena, {x:0, y:0})
+
+                return;
+            }
+        }
+    }
 }
 
     }
@@ -86,7 +102,7 @@ if(lowValue < arena.length){
         }
         return cols
     }
-    const [arena, setArena] = useState(createMatrix(12, 20))
+    const [arena, setArena] = useState(createMatrix(6, 10))
     const [columns, setColumns] = useState(createColumns(arena[0].length, arena.length))
 
     const collide = (arena, player) =>{
@@ -179,10 +195,15 @@ if(lowValue < arena.length){
 
     const renderArena = () =>{
         let i = 0
-        setInterval(()=>{
+      var refresh = setInterval(()=>{
             i = i%6;
             if(i == 0){
-                arena[0][getRandomInt(12)] = 1
+                let random = getRandomInt(arena[0].length)
+                if(arena[0][random] !== 0){
+                    console.log("YOU LOST")
+                    clearInterval(refresh);
+                }
+                arena[0][random] = 1
             }
             updateArena(i)
             i++;
@@ -211,7 +232,7 @@ pq.queue(itemToPush)
     useEffect(() => {
         const canvas = document.getElementById('tetris')
         const context = canvas.getContext('2d')
-        context.scale(20, 20)
+        context.scale(40, 40)
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
         renderArena()
