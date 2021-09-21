@@ -1,9 +1,10 @@
 import TetrisComponent from "./TetrisComponent";
+import TetrisComponentLarge from "./TetrisComponentLarge";
 
 function App() {
   return (
     <div className="App">
-    <TetrisComponent></TetrisComponent>
+    <TetrisComponentLarge></TetrisComponentLarge>
     </div>
   );
 }

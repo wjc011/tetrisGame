@@ -6,15 +6,15 @@ import { render } from '@testing-library/react'
 const TetrisComponent = () => {
     const [pq, setPq] = useState(new PriorityQueue((a, b)=> {return b.y-a.y}))
 
-
+    const matrixLen = 2;
     const [pieces, setPieces] = useState([new TetrisPiece({x:getRandomInt(6), y:0, bottom: false}, 1)]);
     const [itemToPush, setItemToPush] = useState()
     const [updatePiece, setUpdatePiece] = useState(true)
     const [lowValue, setLowValue] = useState(20);
     const [highCol, setHighCol] = useState(0);
-    const [columnHeights, setColumnHeights] = useState(new Array(arena.length).fill(arena[0].length))
-    const [columnsII, setColumnsII] = useState(createColumnsII(arena.length))
+
     const updateArena = (mod)=>{
+
         for(let i =arena.length-1; mod ==0 ? i>0 : i>=0; i--){
             for(let j = arena[i].length-1; j>=0; j--){                
                 if(arena[i][j] === 1){
@@ -35,13 +35,39 @@ const TetrisComponent = () => {
     }
 
     const updateArenaII = (mod) =>{
+        setTempColumns(createColumnsII(arena[0].length))
+        //console.log(tempColumns)
         for(let i =0; i<columnsII.length; i++){
             for(let j = 0; j<columnsII[i].length; j++){
-                if(columnsII[i][j]+1 > columnHeights[i] || columnsII[i][j] > arena.length){
-                    
+                if(columnsII[i][j]+matrixLen >= columnHeights[i] || columnsII[i][j]+matrixLen > arena.length){
+                    columnHeights[i] = columnsII[i][j];
+                    console.log("ALSFJASLKFJASF")
+
+                    console.log(i, columnsII[i])
+                    columnsII[i] = columnsII[i].filter((val) => val !== columnsII[i][j])
+                    console.log(i, columnsII[i])
+
+                    j--; //reset increment by one
+                    continue;
                 }
+                for(let k = 0; k<matrixLen; k++){
+                arena[columnsII[i][j]+k][i] =0
+                arena[columnsII[i][j]+k][i+k] =0
+                arena[columnsII[i][j]][i+k] =0
+
+                }
+                columnsII[i][j]+=2;
             }
         }
+        if(mod == 0){
+            columnsII[getRandomInt(3)*2].push(0)
+        }
+       /*  if(mod == 0){
+            setTempColumns(tempColumns => [[3, 2, 3],...tempColumns])
+        }
+        setColumnsII(tempColumns); */
+
+       // drawMatrix(arena, {x:0, y:0});
     }
 
     
@@ -117,13 +143,17 @@ else{
     const createColumnsII = (w)=>{
         const cols = []
         for(let i =0; i<w; i++){
-            cols.push(new Array(0));
+            cols.push(new Array());
         }
         return cols
     }
 
-    const [arena, setArena] = useState(createMatrix(6, 10))
+    const [arena, setArena] = useState(createMatrix(24, 40))
     const [columns, setColumns] = useState(createColumns(arena[0].length, arena.length))
+    const [columnHeights, setColumnHeights] = useState(new Array(arena[0].length).fill(arena.length))
+    const [columnsII, setColumnsII] = useState(createColumnsII(arena[0].length))
+    const [tempColumns, setTempColumns] = useState(createColumnsII(arena[0].length))
+
 
     const collide = (arena, player) =>{
         const [m, o] = [player.matrix, player.pos]
@@ -159,6 +189,7 @@ else{
         const context = canvas.getContext('2d')
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width) 
+
 
         matrix.forEach((row, y)=>{
             row.forEach((value, x)=>{
@@ -215,6 +246,7 @@ else{
 
     const renderArena = () =>{
         let i = 0
+        columnsII[0].push(0)
       var refresh = setInterval(()=>{
             i = i%6;
             if(i == 0){
@@ -223,11 +255,23 @@ else{
                     console.log("YOU LOST")
                     clearInterval(refresh);
                 }
-                arena[0][random] = 1
+                //arena[0][random] = 1
             }
-            updateArena(i)
+            updateArenaII(i)
             i++;
-            
+
+           for(let l = 0; l<columnsII.length; l++){
+            for(let j =0; j<columnsII[l].length; j++){
+                console.log(l, columnsII[l])
+                for(let k = 0; k<matrixLen; k++){
+                    arena[columnsII[l][j]+k][l] =1
+                    arena[columnsII[l][j]+k][l+k] =1
+                    arena[columnsII[l][j]][l+k] =1
+
+
+                }
+            }
+        }
             drawMatrix(arena, {x:0, y:0})
         }, 500)
 
@@ -252,7 +296,7 @@ pq.queue(itemToPush)
     useEffect(() => {
         const canvas = document.getElementById('tetris')
         const context = canvas.getContext('2d')
-        context.scale(40, 40)
+        context.scale(10, 10)
         context.fillStyle = '#000'
         context.fillRect(0, 0, canvas.height, canvas.width)
         renderArena()
