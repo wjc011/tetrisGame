@@ -35,31 +35,25 @@ const TetrisComponent = () => {
     }
 
     const updateArenaII = (mod) =>{
-        setTempColumns(createColumnsII(arena[0].length))
+        //setTempColumns(createColumnsII(arena[0].length))
         //console.log(tempColumns)
         for(let i =0; i<columnsII.length; i++){
             for(let j = 0; j<columnsII[i].length; j++){
                 if(columnsII[i][j]+matrixLen >= columnHeights[i] || columnsII[i][j]+matrixLen > arena.length){
                     columnHeights[i] = columnsII[i][j];
-                    console.log("ALSFJASLKFJASF")
 
-                    console.log(i, columnsII[i])
                     columnsII[i] = columnsII[i].filter((val) => val !== columnsII[i][j])
-                    console.log(i, columnsII[i])
-
+                    console.log(columnHeights);
                     j--; //reset increment by one
                     continue;
                 }
-                for(let k = 0; k<matrixLen; k++){
-                arena[columnsII[i][j]+k][i] =0
-                arena[columnsII[i][j]+k][i+k] =0
-                arena[columnsII[i][j]][i+k] =0
+                color(columnsII[i][j], i, 0)
 
-                }
                 columnsII[i][j]+=2;
             }
         }
         if(mod == 0){
+            
             columnsII[getRandomInt(3)*2].push(0)
         }
        /*  if(mod == 0){
@@ -77,47 +71,45 @@ const TetrisComponent = () => {
         player.pos.x = arena.length
     }
     const onDelete = () =>{
-        /*let max = 0;
-        for(let i =0; i<arena[0].length; i++){
-            max = Math.max(max, getHeight(i));
-        }
-*/
-console.log(lowValue, arena.length)
-
-if(lowValue < arena.length){
-
-    arena[lowValue][highCol] = 0;
-    columns[highCol]++;
-    let min = arena.length
-    let lowCol = 0;
-    for(let i =0; i<columns.length; i++){
-        if(columns[i] <min){
-            min = arena.length
-            lowCol =i
-        }
-    }
-    setHighCol(lowCol);
-    setLowValue(min);
-    console.log(columns)
-
-    drawMatrix(arena, {x:0, y:0})
-
-}
-else{
-
-    for(let i = arena.length-1; i>=0; i--){
-        for(let j = arena[0].length-1; j>=0; j--){
-            if(arena[i][j] !== 0){
-                arena[i][j] = 0;
-                drawMatrix(arena, {x:0, y:0})
-
-                return;
+        let min = arena.length;
+        let minCol = -1;
+        for(let i =0; i<columnHeights.length; i++){
+            if(columnHeights[i] < min){
+                  minCol = i;
+                  min = columnHeights[i];
             }
         }
-    }
-}
-
-    }
+        if(min == arena.length){
+            let max = 0;
+            let maxCol = -1;
+            for(let i =0; i<columnsII.length; i++){
+                for(let j =0; j<columnsII[i].length; j++){
+                    if(columnsII[i][j] > max){
+                        max = columnsII[i][j]
+                        maxCol = i;
+                    }
+                }
+            }
+            if(maxCol == -1){
+                console.log("BOARD IS CLEAR")
+                return
+            }
+            columnsII[maxCol] = columnsII[maxCol].filter((val) => val !== max)
+            color(max, maxCol, 0)
+            return;
+        }
+        color(columnHeights[minCol], minCol, 0)
+        columnHeights[minCol]+=matrixLen
+      }
+  
+      const color = (r, c, num) =>{
+          for(let i = 0; i<matrixLen; i++){
+              for(let j = 0; j<matrixLen; j++){
+                  arena[r+i][c+j] = num;
+              }
+          }
+          drawMatrix(arena, {x:0, y:0})
+      }
    
     const matrix = [
         [0, 0],
@@ -246,7 +238,6 @@ else{
 
     const renderArena = () =>{
         let i = 0
-        columnsII[0].push(0)
       var refresh = setInterval(()=>{
             i = i%6;
             if(i == 0){
@@ -255,25 +246,17 @@ else{
                     console.log("YOU LOST")
                     clearInterval(refresh);
                 }
-                //arena[0][random] = 1
             }
             updateArenaII(i)
             i++;
 
            for(let l = 0; l<columnsII.length; l++){
             for(let j =0; j<columnsII[l].length; j++){
-                console.log(l, columnsII[l])
-                for(let k = 0; k<matrixLen; k++){
-                    arena[columnsII[l][j]+k][l] =1
-                    arena[columnsII[l][j]+k][l+k] =1
-                    arena[columnsII[l][j]][l+k] =1
-
-
-                }
+                    color(columnsII[l][j], l, 1);
             }
         }
             drawMatrix(arena, {x:0, y:0})
-        }, 500)
+        }, 100)
 
     }
     //UPDATE ONLY ONCE
